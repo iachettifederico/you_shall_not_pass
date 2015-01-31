@@ -128,6 +128,48 @@ scope YouShallNotPass::Authorizator do
     end
   end
 
+  scope "#perform_for" do
+    class BasicAuthorizator < YouShallNotPass::Authorizator
+      def policies
+        {
+          can:  true,
+          cant: false,
+
+          use_args: -> (**args) { args.all? { |k, v| k == v }  }
+        }
+      end
+    end
+
+    let(:authorizator) { BasicAuthorizator.new }
+
+    spec "executes the block if it is allowed" do
+      authorizator.perform_for(:can) do
+        @i_can = true
+      end
+
+      !! defined? @i_can
+    end
+
+    spec "doesn't execute the block if it isn't allowed" do
+      authorizator.perform_for(:cant) do
+        @i_can = true
+      end
+
+      ! defined? @i_can
+    end
+
+    spec "passes the arguments" do
+      authorizator.perform_for(:use_args, a: :a, b: :b) do
+        @i_can = true
+      end
+
+      !! defined? @i_can
+    end
+  end
+
   scope "#polices" do
+  end
+
+  scope ".attribute" do
   end
 end

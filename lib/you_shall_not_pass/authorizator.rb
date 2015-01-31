@@ -12,6 +12,10 @@ module YouShallNotPass
       {}
     end
 
+    def perform_for(permission, **args)
+      yield if can?(permission, **args)
+    end
+    
   end
 
 end
