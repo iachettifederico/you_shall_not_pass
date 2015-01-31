@@ -179,30 +179,30 @@ scope YouShallNotPass::Authorizator do
       end
     end
 
-    let(:authenticator) { NumberAuthenticator.new }
+    let(:authorizator) { NumberAuthenticator.new }
 
     spec "allow _and_" do
-      authenticator.can?(:one_and_two)
+      authorizator.can?(:one_and_two)
     end
 
     spec "reject _and_" do
-      ! authenticator.can?(:one_and_three)
+      ! authorizator.can?(:one_and_three)
     end
 
     spec "allow _or_" do
-      authenticator.can?(:one_or_two)
+      authorizator.can?(:one_or_two)
     end
 
     spec "reject _or_" do
-      ! authenticator.can?(:three_or_four)
+      ! authorizator.can?(:three_or_four)
     end
 
     spec "allow _and_or_" do
-      authenticator.can?(:one_and_two_or_three)
+      authorizator.can?(:one_and_two_or_three)
     end
 
     spec "reject _and_or_" do
-      ! authenticator.can?(:one_and_three_or_four)
+      ! authorizator.can?(:one_and_three_or_four)
     end
 
     scope "regular policies vs conditional policies" do
@@ -217,21 +217,64 @@ scope YouShallNotPass::Authorizator do
         end
       end
 
-      let(:authenticator) { ConditionalAuthorizator.new }
+      let(:authorizator) { ConditionalAuthorizator.new }
 
       spec "_and_" do
-        ! authenticator.can?(:one_and_two)
+        ! authorizator.can?(:one_and_two)
       end
 
       spec "_or_" do
-        ! authenticator.can?(:one_or_two)
+        ! authorizator.can?(:one_or_two)
       end
     end
   end
 
   scope "#polices" do
+    class MergePolicies < YouShallNotPass::Authorizator
+      def action_policies
+        {
+          create_user: true,
+          update_user: true,
+        }
+      end
+
+      def role_policies
+        {
+          admin: true,
+          editor: true,
+        }
+      end
+
+      def feature_policies
+        {
+          avatars: true,
+          random_player: true,
+        }
+      end
+    end
+
+    spec do
+      YouShallNotPass::Authorizator.new.policies == {}
+    end
+
+    let(:authorizator) { MergePolicies.new }
+    
+    spec "merges all the policies" do
+      @expected = {
+          create_user: true,
+          update_user: true,
+          admin: true,
+          editor: true,
+          avatars: true,
+          random_player: true,
+      }
+
+      authorizator.policies == @expected
+    end
   end
 
   scope ".attribute" do
+    xspec do
+    end
   end
 end

@@ -14,17 +14,18 @@ module YouShallNotPass
       else
         raise e
       end
-      
-    end
 
-    def policies
-      {}
     end
 
     def perform_for(permission, **args)
       yield if can?(permission, **args)
     end
 
+    def policies
+      @policies ||= methods.grep(/_policies\Z/).map {|name| send(name)}.each_with_object({}) do |curr, res|
+        res.merge!(curr)
+      end
+    end
   end
 
 end
