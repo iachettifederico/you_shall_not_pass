@@ -167,6 +167,68 @@ scope YouShallNotPass::Authorizator do
     end
   end
 
+  scope "conditional policies" do
+    class NumberAuthenticator < YouShallNotPass::Authorizator
+      def policies
+        {
+          one:   true,
+          two:   true,
+          three: false,
+          four:  false,
+        }
+      end
+    end
+
+    let(:authenticator) { NumberAuthenticator.new }
+
+    spec "allow _and_" do
+      authenticator.can?(:one_and_two)
+    end
+
+    spec "reject _and_" do
+      ! authenticator.can?(:one_and_three)
+    end
+
+    spec "allow _or_" do
+      authenticator.can?(:one_or_two)
+    end
+
+    spec "reject _or_" do
+      ! authenticator.can?(:three_or_four)
+    end
+
+    spec "allow _and_or_" do
+      authenticator.can?(:one_and_two_or_three)
+    end
+
+    spec "reject _and_or_" do
+      ! authenticator.can?(:one_and_three_or_four)
+    end
+
+    scope "regular policies vs conditional policies" do
+      class ConditionalAuthorizator < YouShallNotPass::Authorizator
+        def policies
+          {
+            one: true,
+            two: true,
+            one_and_two: false,
+            one_or_two: false
+          }
+        end
+      end
+
+      let(:authenticator) { ConditionalAuthorizator.new }
+
+      spec "_and_" do
+        ! authenticator.can?(:one_and_two)
+      end
+
+      spec "_or_" do
+        ! authenticator.can?(:one_or_two)
+      end
+    end
+  end
+
   scope "#polices" do
   end
 
