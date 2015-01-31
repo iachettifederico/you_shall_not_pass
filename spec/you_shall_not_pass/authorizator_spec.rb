@@ -19,7 +19,7 @@ scope YouShallNotPass::Authorizator do
           @val = val
         end
 
-        def call
+        def call(*)
           @val
         end
       end
@@ -27,8 +27,8 @@ scope YouShallNotPass::Authorizator do
       class MyAuthenticator < YouShallNotPass::Authorizator
         def policies
           {
-            can_lambda:  -> { true },
-            cant_lambda: -> { false },
+            can_lambda:  -> (*) { true },
+            cant_lambda: -> (*) { false },
 
             can_proc:    proc { true },
             cant_proc:   proc { false },
@@ -39,8 +39,8 @@ scope YouShallNotPass::Authorizator do
             can_true:    true,
             cant_false:  false,
 
-            can_array:   [true, true, true],
-            cant_array:  [true, false, true],
+            can_array:   [ true, proc { true }, true ],
+            cant_array:  [ true, false,         true ],
           }
         end
       end
@@ -86,6 +86,45 @@ scope YouShallNotPass::Authorizator do
       spec "reject array" do
         ! authorizator.can?(:cant_array)
       end
+    end
+  end
+
+  scope "arguments" do
+    class MyAuthenticatorWithArgs < YouShallNotPass::Authorizator
+      def policies
+        {
+          lambda: -> (a:, b:) { a == b },
+          proc:   proc { |a:, b:| a == b },
+
+          splat:  -> (**args) { args.all? { |k, v| k == v} },
+        }
+      end
+    end
+
+    let(:authorizator) { MyAuthenticatorWithArgs.new }
+
+    spec "allow lambda" do
+      authorizator.can?(:lambda, a: 1, b: 1)
+    end
+
+    spec "reject lambda" do
+      ! authorizator.can?(:lambda, a: 1, b: 2)
+    end
+
+    spec "allow proc" do
+      authorizator.can?(:proc, a: 1, b: 1)
+    end
+
+    spec "reject proc" do
+      ! authorizator.can?(:proc, a: 1, b: 2)
+    end
+
+    spec "allow splat" do
+      authorizator.can?(:splat, a: :a , b: :b , c: :c )
+    end
+
+    spec "reject splat" do
+      ! authorizator.can?(:splat, a: :a, b: :b, c: :a)
     end
   end
 

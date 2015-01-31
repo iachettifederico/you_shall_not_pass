@@ -2,9 +2,9 @@ require "callable"
 
 module YouShallNotPass
   class Authorizator
-    def can?(permission)
+    def can?(permission, **args)
       Array(policies.fetch(permission)).all? do |policy|
-        Callable(policy).call == true
+        Callable(policy).call(**args) == true
       end
     end
 
@@ -12,6 +12,6 @@ module YouShallNotPass
       {}
     end
 
-      end
+  end
 
 end
