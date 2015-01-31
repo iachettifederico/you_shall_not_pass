@@ -1,7 +1,14 @@
 require "callable"
+require "fattr"
 
 module YouShallNotPass
   class Authorizator
+    def initialize(**attrs)
+      attrs.each do |attr, value|
+        send attr, value
+      end
+    end
+    
     def can?(permission, **args)
       Array(policies.fetch(permission)).all? do |policy|
         Callable(policy).call(**args) == true
@@ -26,6 +33,11 @@ module YouShallNotPass
         res.merge!(curr)
       end
     end
-  end
 
+    private
+
+    def self.attribute(attr)
+      fattr attr
+    end
+  end
 end

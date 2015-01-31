@@ -23,4 +23,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "matest", "~> 1.5"
   
   spec.add_dependency "callable", "~> 0.0.3"
+  spec.add_dependency "fattr", "~> 2.2.2"
 end

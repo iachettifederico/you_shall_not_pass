@@ -258,15 +258,15 @@ scope YouShallNotPass::Authorizator do
     end
 
     let(:authorizator) { MergePolicies.new }
-    
+
     spec "merges all the policies" do
       @expected = {
-          create_user: true,
-          update_user: true,
-          admin: true,
-          editor: true,
-          avatars: true,
-          random_player: true,
+        create_user: true,
+        update_user: true,
+        admin: true,
+        editor: true,
+        avatars: true,
+        random_player: true,
       }
 
       authorizator.policies == @expected
@@ -274,7 +274,27 @@ scope YouShallNotPass::Authorizator do
   end
 
   scope ".attribute" do
-    xspec do
+    class UserAuthorizator < YouShallNotPass::Authorizator
+      attribute :user
+      attribute :role
+
+      def policies
+        {
+          something: proc { user == "Me" && role == :admin }
+        }
+      end
+    end
+
+    spec "can initialize with attributes" do
+      authorizator = UserAuthorizator.new(user: "Me", role: :admin)
+
+      authorizator.can?(:something)
+    end
+
+    spec "can initialize with attributes" do
+      authorizator = UserAuthorizator.new(user: "Me", role: :user)
+
+      ! authorizator.can?(:something)
     end
   end
 end
