@@ -1,13 +1,20 @@
 # YouShallNotPass
+[![Build Status](https://travis-ci.org/iachettifederico/you_shall_not_pass.png?branch=master)](https://travis-ci.org/iachettifederico/you_shall_not_pass)
 
-TODO: Write a gem description
+
+Simple framework-agnostic authorization library.
+
+## Usage
+
+The first you need is to create an Authenticator
+
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'you_shall_not_pass'
+  gem 'you_shall_not_pass'
 ```
 
 And then execute:
@@ -18,9 +25,6 @@ Or install it yourself as:
 
     $ gem install you_shall_not_pass
 
-## Usage
-
-TODO: Write usage instructions here
 
 ## Contributing
 
