@@ -197,6 +197,14 @@ scope YouShallNotPass::Authorizator do
       ! authorizator.can?(:three_or_four)
     end
 
+    spec "allow not_" do
+      authorizator.can?(:not_three)
+    end
+
+    spec "reject not_" do
+      ! authorizator.can?(:not_one)
+    end
+
     spec "allow _and_or_" do
       authorizator.can?(:one_and_two_or_three)
     end

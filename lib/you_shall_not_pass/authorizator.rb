@@ -18,6 +18,9 @@ module YouShallNotPass
         permission.to_s.split("_and_").all? { |policy| can?(policy.to_sym, **args)}
       elsif permission =~ /_or_/
         permission.to_s.split("_or_").any? { |policy| can?(policy.to_sym, **args)}
+      elsif permission =~ /\Anot_/
+        policy = permission.to_s.gsub(/\Anot_/, "")
+        ! can?(policy.to_sym, **args)
       else
         raise e
       end
