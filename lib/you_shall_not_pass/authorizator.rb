@@ -8,23 +8,27 @@ module YouShallNotPass
         send attr, value
       end
     end
-    
+
     def can?(permission, **args)
       Array(policies.fetch(permission)).all? do |policy|
         Callable(policy).call(**args) == true
       end
-    rescue KeyError => e
-      if permission =~ /_and_/
+    rescue KeyError => exception
+      break_down_can(permission, exception, **args)
+    end
+
+    def break_down_can(permission, exception, **args)
+      case permission
+      when /_and_/
         permission.to_s.split("_and_").all? { |policy| can?(policy.to_sym, **args)}
-      elsif permission =~ /_or_/
+      when /_or_/
         permission.to_s.split("_or_").any? { |policy| can?(policy.to_sym, **args)}
-      elsif permission =~ /\Anot_/
+      when /\Anot_/
         policy = permission.to_s.gsub(/\Anot_/, "")
         ! can?(policy.to_sym, **args)
       else
-        raise e
+        raise exception
       end
-
     end
 
     def perform_for(permission, **args)
