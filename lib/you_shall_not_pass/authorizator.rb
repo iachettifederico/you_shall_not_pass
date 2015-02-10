@@ -46,5 +46,6 @@ module YouShallNotPass
     def self.attribute(attr)
       fattr attr
     end
+    private_class_method :attribute
   end
 end
