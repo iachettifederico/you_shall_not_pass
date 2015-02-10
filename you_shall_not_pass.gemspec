@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["iachetti.federico@gmail.com"]
   spec.summary       = %q{Simple authorization library.}
   spec.description   = %q{Embrace authorization with this simple library.}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/iachettifederico/you_shall_not_pass"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
