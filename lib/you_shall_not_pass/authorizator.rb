@@ -36,7 +36,7 @@ module YouShallNotPass
     end
 
     def policies
-      @policies ||= methods.grep(/_policies\Z/).map {|name| send(name)}.each_with_object({}) do |curr, res|
+      @policies ||= methods.grep(/_policies\z/).map {|name| send(name)}.each_with_object({}) do |curr, res|
         res.merge!(curr)
       end
     end
