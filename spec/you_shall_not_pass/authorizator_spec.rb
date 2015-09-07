@@ -128,7 +128,7 @@ scope YouShallNotPass::Authorizator do
     end
   end
 
-  scope "#perform_for" do
+  scope "performing" do
     class BasicAuthorizator < YouShallNotPass::Authorizator
       def policies
         {
@@ -140,30 +140,59 @@ scope YouShallNotPass::Authorizator do
       end
     end
 
-    let(:authorizator) { BasicAuthorizator.new }
+    scope "#perform_if" do
+      let(:authorizator) { BasicAuthorizator.new }
 
-    spec "executes the block if it is allowed" do
-      authorizator.perform_for(:can) do
-        @i_can = true
+      spec "executes the block if it is allowed" do
+        authorizator.perform_if(:can) do
+          @i_can = true
+        end
+
+        !! defined? @i_can
       end
 
-      !! defined? @i_can
+      spec "doesn't execute the block if it isn't allowed" do
+        authorizator.perform_if(:cant) do
+          @i_can = true
+        end
+
+        ! defined? @i_can
+      end
+
+      spec "passes the arguments" do
+        authorizator.perform_if(:use_args, a: :a, b: :b) do
+          @i_can = true
+        end
+
+        !! defined? @i_can
+      end
     end
 
-    spec "doesn't execute the block if it isn't allowed" do
-      authorizator.perform_for(:cant) do
-        @i_can = true
+    scope "#perform_unless" do
+      let(:authorizator) { BasicAuthorizator.new }
+      spec "executes the block if it is allowed" do
+        authorizator.perform_unless(:can) do
+          @i_can = true
+        end
+
+        ! defined? @i_can
       end
 
-      ! defined? @i_can
-    end
+      spec "doesn't execute the block if it isn't allowed" do
+        authorizator.perform_unless(:cant) do
+          @i_can = true
+        end
 
-    spec "passes the arguments" do
-      authorizator.perform_for(:use_args, a: :a, b: :b) do
-        @i_can = true
+        !! defined? @i_can
       end
 
-      !! defined? @i_can
+      spec "passes the arguments" do
+        authorizator.perform_unless(:use_args, a: :a, b: :b) do
+          @i_can = true
+        end
+
+        ! defined? @i_can
+      end
     end
   end
 
@@ -310,7 +339,7 @@ scope YouShallNotPass::Authorizator do
     class DslAuthorizator < YouShallNotPass::Authorizator
       attribute :user
       attribute :pass
-      
+
       authorize(:true)  { true }
       authorize(:false) { false }
 

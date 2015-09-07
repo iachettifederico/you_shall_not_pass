@@ -31,8 +31,12 @@ module YouShallNotPass
       end
     end
 
-    def perform_for(permission, **args)
+    def perform_if(permission, **args)
       yield if can?(permission, **args)
+    end
+
+    def perform_unless(permission, **args)
+      yield unless can?(permission, **args)
     end
 
     def policies
