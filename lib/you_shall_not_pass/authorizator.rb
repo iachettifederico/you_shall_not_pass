@@ -17,6 +17,14 @@ module YouShallNotPass
       break_down_can(permission, exception, **args)
     end
 
+    def can_all?(*permissions, **args)
+      permissions.all? { |permission| can?(permission, **args)}
+    end
+
+    def can_any?(*permissions, **args)
+      permissions.any? { |permission| can?(permission, **args)}
+    end
+
     def break_down_can(permission, exception, **args)
       case permission
       when /_and_/
@@ -37,6 +45,22 @@ module YouShallNotPass
 
     def perform_unless(permission, **args)
       yield unless can?(permission, **args)
+    end
+
+    def perform_if_all(*permissions, **args)
+      yield if can_all?(*permissions, **args)
+    end
+
+    def perform_unless_all(*permissions, **args)
+      yield unless can_all?(*permissions, **args)
+    end
+
+    def perform_if_any(*permissions, **args)
+      yield if can_any?(*permissions, **args)
+    end
+
+    def perform_unless_any(*permissions, **args)
+      yield unless can_any?(*permissions, **args)
     end
 
     def policies

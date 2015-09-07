@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", "~> 1.7"
   spec.add_development_dependency "rake", "~> 10.0"
-  spec.add_development_dependency "matest", "~> 1.7.1"
+  spec.add_development_dependency "matest", "~> 1.7.2"
   
   spec.add_dependency "callable", "~> 0.0.5"
   spec.add_dependency "fattr", "~> 2.2.2"

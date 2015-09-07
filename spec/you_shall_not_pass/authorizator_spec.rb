@@ -2,6 +2,20 @@ require "spec_helper"
 require "you_shall_not_pass/authorizator"
 
 scope YouShallNotPass::Authorizator do
+
+  class BasicAuthorizator < YouShallNotPass::Authorizator
+    def policies
+      {
+       can:  true,
+       can2:  true,
+       cant: false,
+       cant2: false,
+
+       use_args: -> (**args) { args.all? { |k, v| k == v }  }
+      }
+    end
+  end
+
   scope "#can?" do
     scope "no policies" do
       spec "no policies defined" do
@@ -10,6 +24,46 @@ scope YouShallNotPass::Authorizator do
         end
 
         @ex.class == KeyError
+      end
+    end
+
+    scope "can multiple" do
+      let(:authorizator) { BasicAuthorizator.new }
+
+      spec "can_all? authorizes if all policies pass" do
+        authorizator.can_all?(:can, :can2)
+      end
+
+      spec "can_all? doesn't authorize unless all policies pass" do
+        authorizator.can_all?(:can, :cant) == false
+      end
+
+      spec "can_any? authorizes if any of the policies pass" do
+        authorizator.can_any?(:can, :cant)
+      end
+
+      spec "can_any? doesn't authorize if all the policies return false" do
+        authorizator.can_any?(:cant, :cant2) == false
+      end
+
+      scope "with arguments" do
+        let(:authorizator) { BasicAuthorizator.new }
+
+        spec do
+          authorizator.can_all?(:use_args, :can2, a: :a)
+        end
+
+        spec do
+          authorizator.can_all?(:use_args, :can, a: false) == false
+        end
+
+        spec do
+          authorizator.can_any?(:use_args, :can2, a: :a)
+        end
+
+        spec do
+          authorizator.can_all?(:use_args, :cant, a: false) == false
+        end
       end
     end
 
@@ -129,17 +183,6 @@ scope YouShallNotPass::Authorizator do
   end
 
   scope "performing" do
-    class BasicAuthorizator < YouShallNotPass::Authorizator
-      def policies
-        {
-         can:  true,
-         cant: false,
-
-         use_args: -> (**args) { args.all? { |k, v| k == v }  }
-        }
-      end
-    end
-
     scope "#perform_if" do
       let(:authorizator) { BasicAuthorizator.new }
 
@@ -193,6 +236,76 @@ scope YouShallNotPass::Authorizator do
 
         ! defined? @i_can
       end
+    end
+
+    scope "perform multiple" do
+      let(:authorizator) { BasicAuthorizator.new }
+
+      spec "#perform_if_all" do
+        authorizator.perform_if_all(:can, :can2) do
+          @i_can = true
+        end
+
+        !! defined? @i_can
+      end
+
+      spec "#perform_unless_all" do
+        authorizator.perform_unless_all(:can, :cant) do
+          @i_can = true
+        end
+
+        !! defined? @i_can
+      end
+
+      spec "not #perform_if_all" do
+        authorizator.perform_if_all(:can, :cant) do
+          @i_can = true
+        end
+
+        ! defined? @i_can
+      end
+
+      spec "not #perform_unless_all" do
+        authorizator.perform_unless_all(:can, :can2) do
+          @i_can = true
+        end
+
+        ! defined? @i_can
+      end
+
+      spec "#perform_if_any" do
+        authorizator.perform_if_any(:can, :can2) do
+          @i_can = true
+        end
+
+        !! defined? @i_can
+      end
+
+      spec "#perform_unless_any" do
+        authorizator.perform_unless_any(:cant, :cant2) do
+          @i_can = true
+        end
+
+        !! defined? @i_can
+      end
+
+      spec "not #perform_if_any" do
+        authorizator.perform_if_any(:cant, :cant2) do
+          @i_can = true
+        end
+
+        ! defined? @i_can
+      end
+
+      spec "not #perform_unless_any" do
+        authorizator.perform_unless_any(:can, :can2) do
+          @i_can = true
+        end
+
+        ! defined? @i_can
+      end
+
+
     end
   end
 
