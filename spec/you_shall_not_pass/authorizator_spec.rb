@@ -24,28 +24,28 @@ scope YouShallNotPass::Authorizator do
         end
       end
 
-      class MyAuthenticator < YouShallNotPass::Authorizator
+      class MyAuthorizator < YouShallNotPass::Authorizator
         def policies
           {
-            can_lambda:  -> (*) { true },
-            cant_lambda: -> (*) { false },
+           can_lambda:  -> (*) { true },
+           cant_lambda: -> (*) { false },
 
-            can_proc:    proc { true },
-            cant_proc:   proc { false },
+           can_proc:    proc { true },
+           cant_proc:   proc { false },
 
-            can_action:  Action.new(true),
-            cant_action: Action.new(false),
+           can_action:  Action.new(true),
+           cant_action: Action.new(false),
 
-            can_true:    true,
-            cant_false:  false,
+           can_true:    true,
+           cant_false:  false,
 
-            can_array:   [ true, proc { true }, true ],
-            cant_array:  [ true, false,         true ],
+           can_array:   [ true, proc { true }, true ],
+           cant_array:  [ true, false,         true ],
           }
         end
       end
 
-      let(:authorizator) { MyAuthenticator.new }
+      let(:authorizator) { MyAuthorizator.new }
 
       spec "allow lambda" do
         authorizator.can?(:can_lambda)
@@ -90,18 +90,18 @@ scope YouShallNotPass::Authorizator do
   end
 
   scope "arguments" do
-    class MyAuthenticatorWithArgs < YouShallNotPass::Authorizator
+    class MyAuthorizatorWithArgs < YouShallNotPass::Authorizator
       def policies
         {
-          lambda: -> (a:, b:) { a == b },
-          proc:   proc { |a:, b:| a == b },
+         lambda: -> (a:, b:) { a == b },
+         proc:   proc { |a:, b:| a == b },
 
-          splat:  -> (**args) { args.all? { |k, v| k == v} },
+         splat:  -> (**args) { args.all? { |k, v| k == v} },
         }
       end
     end
 
-    let(:authorizator) { MyAuthenticatorWithArgs.new }
+    let(:authorizator) { MyAuthorizatorWithArgs.new }
 
     spec "allow lambda" do
       authorizator.can?(:lambda, a: 1, b: 1)
@@ -132,10 +132,10 @@ scope YouShallNotPass::Authorizator do
     class BasicAuthorizator < YouShallNotPass::Authorizator
       def policies
         {
-          can:  true,
-          cant: false,
+         can:  true,
+         cant: false,
 
-          use_args: -> (**args) { args.all? { |k, v| k == v }  }
+         use_args: -> (**args) { args.all? { |k, v| k == v }  }
         }
       end
     end
@@ -168,18 +168,18 @@ scope YouShallNotPass::Authorizator do
   end
 
   scope "conditional policies" do
-    class NumberAuthenticator < YouShallNotPass::Authorizator
+    class NumberAuthorizator < YouShallNotPass::Authorizator
       def policies
         {
-          one:   true,
-          two:   true,
-          three: false,
-          four:  false,
+         one:   true,
+         two:   true,
+         three: false,
+         four:  false,
         }
       end
     end
 
-    let(:authorizator) { NumberAuthenticator.new }
+    let(:authorizator) { NumberAuthorizator.new }
 
     spec "allow _and_" do
       authorizator.can?(:one_and_two)
@@ -217,10 +217,10 @@ scope YouShallNotPass::Authorizator do
       class ConditionalAuthorizator < YouShallNotPass::Authorizator
         def policies
           {
-            one: true,
-            two: true,
-            one_and_two: false,
-            one_or_two: false
+           one: true,
+           two: true,
+           one_and_two: false,
+           one_or_two: false
           }
         end
       end
@@ -241,22 +241,22 @@ scope YouShallNotPass::Authorizator do
     class MergePolicies < YouShallNotPass::Authorizator
       def action_policies
         {
-          create_user: true,
-          update_user: true,
+         create_user: true,
+         update_user: true,
         }
       end
 
       def role_policies
         {
-          admin: true,
-          editor: true,
+         admin: true,
+         editor: true,
         }
       end
 
       def feature_policies
         {
-          avatars: true,
-          random_player: true,
+         avatars: true,
+         random_player: true,
         }
       end
     end
@@ -269,13 +269,13 @@ scope YouShallNotPass::Authorizator do
 
     spec "merges all the policies" do
       @expected = {
-        create_user: true,
-        update_user: true,
-        admin: true,
-        editor: true,
-        avatars: true,
-        random_player: true,
-      }
+                   create_user: true,
+                   update_user: true,
+                   admin: true,
+                   editor: true,
+                   avatars: true,
+                   random_player: true,
+                  }
 
       authorizator.policies == @expected
     end
@@ -288,7 +288,7 @@ scope YouShallNotPass::Authorizator do
 
       def policies
         {
-          something: proc { user == "Me" && role == :admin }
+         something: proc { user == "Me" && role == :admin }
         }
       end
     end
@@ -304,5 +304,32 @@ scope YouShallNotPass::Authorizator do
 
       ! authorizator.can?(:something)
     end
+  end
+
+  scope "dsl" do
+    class DslAuthorizator < YouShallNotPass::Authorizator
+      attribute :user
+      attribute :pass
+      
+      authorize(:true)  { true }
+      authorize(:false) { false }
+
+      authorize(:login) { user == pass}
+    end
+
+    let(:authorizator) { DslAuthorizator.new(user: "fede", pass: "fede") }
+
+    spec "authorizes true" do
+      authorizator.can?(:true)
+    end
+
+    spec "rejects false" do
+      authorizator.can?(:false) == false
+    end
+
+    spec do
+      authorizator.can?(:login)
+    end
+
   end
 end

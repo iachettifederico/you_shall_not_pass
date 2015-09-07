@@ -36,12 +36,31 @@ module YouShallNotPass
     end
 
     def policies
-      @policies ||= methods.grep(/_policies\z/).map {|name| send(name)}.each_with_object({}) do |curr, res|
-        res.merge!(curr)
-      end
+      @policies ||= __set_policies__
     end
 
     private
+
+    def __set_policies__
+      the_policies = methods.grep(/_policies\z/).map {|name| send(name)}.each_with_object({}) do |curr, res|
+        res.merge!(curr)
+      end
+
+      the_policies.merge!( self.class.__dsl_policies__.each_with_object({}) { |policy, h|
+                            block =  policy.last
+                            h[policy.first] = instance_eval(&block)
+                          })
+
+      the_policies
+    end
+
+    def self.__dsl_policies__
+      @__dsl_policies__ ||= {}
+    end
+
+    def self.authorize(name, &block)
+      __dsl_policies__[name] = block
+    end
 
     def self.attribute(attr)
       fattr attr
