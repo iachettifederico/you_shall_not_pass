@@ -62,7 +62,7 @@ module YouShallNotPass
       @__dsl_policies__ ||= {}
     end
 
-    def self.authorize(name, &block)
+    def self.policy(name, &block)
       __dsl_policies__[name] = block
     end
 

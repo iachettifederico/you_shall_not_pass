@@ -340,10 +340,10 @@ scope YouShallNotPass::Authorizator do
       attribute :user
       attribute :pass
 
-      authorize(:true)  { true }
-      authorize(:false) { false }
+      policy(:true)  { true }
+      policy(:false) { false }
 
-      authorize(:login) { user == pass}
+      policy(:login) { user == pass}
     end
 
     let(:authorizator) { DslAuthorizator.new(user: "fede", pass: "fede") }
