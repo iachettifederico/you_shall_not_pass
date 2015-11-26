@@ -87,7 +87,7 @@ module YouShallNotPass
     end
 
     def self.policy(name, &block)
-      __dsl_policies__[name] = block
+      __dsl_policies__[name] = proc { block }
     end
 
     def self.attribute(attr)

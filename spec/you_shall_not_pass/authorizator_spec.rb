@@ -207,7 +207,7 @@ scope YouShallNotPass::Authorizator do
           @i_can = true
         end
 
-        !! defined? @i_can
+        @i_can
       end
     end
 
@@ -456,7 +456,10 @@ scope YouShallNotPass::Authorizator do
       policy(:true)  { true }
       policy(:false) { false }
 
-      policy(:login) { user == pass}
+      policy(:login) { |user:, pass:|  user == pass}
+
+      policy(:use_args) { |**args| args.all? { |k, v| k == v }  }
+
     end
 
     let(:authorizator) { DslAuthorizator.new(user: "fede", pass: "fede") }
@@ -470,7 +473,11 @@ scope YouShallNotPass::Authorizator do
     end
 
     spec do
-      authorizator.can?(:login)
+      authorizator.can?(:login, user: "u", pass: "u")
+    end
+
+    spec "creates with params" do
+      authorizator.can?(:use_args, a: :a, b: :b)
     end
 
   end
