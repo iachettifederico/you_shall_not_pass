@@ -90,8 +90,12 @@ scope YouShallNotPass::Authorizator do
            can_action:  Action.new(true),
            cant_action: Action.new(false),
 
+           can_true_or_false:   true || false,
+           cant_true_and_false: true && false,
+
            can_true:    true,
            cant_false:  false,
+
 
            can_array:   [ true, proc { true }, true ],
            cant_array:  [ true, false,         true ],
@@ -131,6 +135,18 @@ scope YouShallNotPass::Authorizator do
 
       spec "reject false" do
         ! authorizator.can?(:cant_false)
+      end
+
+      spec "reject false" do
+        ! authorizator.can?(:cant_false)
+      end
+
+      spec "allow true or false" do
+        authorizator.can?(:can_true_or_false)
+      end
+
+      spec "reject true and false" do
+        ! authorizator.can?(:cant_true_and_false)
       end
 
       spec "allow array" do
