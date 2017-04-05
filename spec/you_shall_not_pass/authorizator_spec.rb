@@ -339,38 +339,6 @@ scope YouShallNotPass::Authorizator do
 
     let(:authorizator) { NumberAuthorizator.new }
 
-    spec "allow _and_" do
-      authorizator.can?(:one_and_two)
-    end
-
-    spec "reject _and_" do
-      ! authorizator.can?(:one_and_three)
-    end
-
-    spec "allow _or_" do
-      authorizator.can?(:one_or_two)
-    end
-
-    spec "reject _or_" do
-      ! authorizator.can?(:three_or_four)
-    end
-
-    spec "allow not_" do
-      authorizator.can?(:not_three)
-    end
-
-    spec "reject not_" do
-      ! authorizator.can?(:not_one)
-    end
-
-    spec "allow _and_or_" do
-      authorizator.can?(:one_and_two_or_three)
-    end
-
-    spec "reject _and_or_" do
-      ! authorizator.can?(:one_and_three_or_four)
-    end
-
     scope "regular policies vs conditional policies" do
       class ConditionalAuthorizator < YouShallNotPass::Authorizator
         def policies
