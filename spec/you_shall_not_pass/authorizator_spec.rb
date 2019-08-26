@@ -1,73 +1,69 @@
 require "spec_helper"
 require "you_shall_not_pass/authorizator"
 
-scope YouShallNotPass::Authorizator do
+RSpec.describe YouShallNotPass::Authorizator do
 
   class BasicAuthorizator < YouShallNotPass::Authorizator
     def policies
       {
-       can:  true,
-       can2:  true,
-       cant: false,
-       cant2: false,
+        can:  true,
+        can2:  true,
+        cant: false,
+        cant2: false,
 
-       use_args: -> (**args) { args.all? { |k, v| k == v }  }
+        use_args: -> (**args) { args.all? { |k, v| k == v }  }
       }
     end
   end
 
-  scope "#can?" do
-    scope "no policies" do
-      spec "no policies defined" do
-        @ex = capture_exception(KeyError) do
-          YouShallNotPass::Authorizator.new.can?(:whatever)
-        end
-
-        @ex.class == KeyError
+  describe "#can?" do
+    describe "no policies" do
+      it "no policies defined" do
+        expect { YouShallNotPass::Authorizator.new.can?(:whatever) }.to raise_error(KeyError)
       end
     end
 
-    scope "can multiple" do
+    describe "can multiple" do
       let(:authorizator) { BasicAuthorizator.new }
 
-      spec "can_all? authorizes if all policies pass" do
-        authorizator.can_all?(:can, :can2)
+      it "can_all? authorizes if all policies pass" do
+        expect(authorizator.can_all?(:can, :can2)).to eql(true)
       end
 
-      spec "can_all? doesn't authorize unless all policies pass" do
-        authorizator.can_all?(:can, :cant) == false
+      it "can_all? doesn't authorize unless all policies pass" do
+        expect(authorizator.can_all?(:can, :cant)).to eql(false)
       end
 
-      spec "can_any? authorizes if any of the policies pass" do
-        authorizator.can_any?(:can, :cant)
+      it "can_any? authorizes if any of the policies pass" do
+        expect(authorizator.can_any?(:can, :cant)).to eql(true)
       end
 
-      spec "can_any? doesn't authorize if all the policies return false" do
-        authorizator.can_any?(:cant, :cant2) == false
+      it "can_any? doesn't authorize if all the policies return false" do
+        expect(authorizator.can_any?(:cant, :cant2)).to eql(false)
       end
 
-      scope "with arguments" do
+      describe "with arguments" do
         let(:authorizator) { BasicAuthorizator.new }
 
-        spec do
-          authorizator.can_all?(:use_args, :can2, a: :a)
+        it do
+          expect(authorizator.can_all?(:use_args, :can2, a: :a)).to eql(true)
         end
 
-        spec do
-          authorizator.can_all?(:use_args, :can, a: false) == false
+        it do
+          expect(authorizator.can_all?(:use_args, :can, a: false)).to eql(false)
         end
 
-        spec do
-          authorizator.can_any?(:use_args, :can2, a: :a)
+        it do
+          expect(authorizator.can_any?(:use_args, :can2, a: :a)).to eql(true)
         end
 
-        spec do
-          authorizator.can_all?(:use_args, :cant, a: false) == false
+        it do
+          expect(authorizator.can_all?(:use_args, :cant, a: false)).to eql(false)
         end
       end
     end
 
-    scope "lambdas, procs and other callables" do
+    describe "lambdas, procs and other callables" do
       class Action
         def initialize(val)
           @val = val
@@ -81,358 +77,359 @@ scope YouShallNotPass::Authorizator do
       class MyAuthorizator < YouShallNotPass::Authorizator
         def policies
           {
-           can_lambda:  -> (*) { true },
-           cant_lambda: -> (*) { false },
+            can_lambda:  -> (*) { true },
+            cant_lambda: -> (*) { false },
 
-           can_proc:    proc { true },
-           cant_proc:   proc { false },
+            can_proc:    proc { true },
+            cant_proc:   proc { false },
 
-           can_action:  Action.new(true),
-           cant_action: Action.new(false),
+            can_action:  Action.new(true),
+            cant_action: Action.new(false),
 
-           can_true_or_false:   true || false,
-           cant_true_and_false: true && false,
+            can_true_or_false:   true || false,
+            cant_true_and_false: true && false,
 
-           can_true:    true,
-           cant_false:  false,
+            can_true:    true,
+            cant_false:  false,
 
 
-           can_array:   [ true, proc { true }, true ],
-           cant_array:  [ true, false,         true ],
+            can_array:   [ true, proc { true }, true ],
+            cant_array:  [ true, false,         true ],
           }
         end
       end
 
       let(:authorizator) { MyAuthorizator.new }
 
-      spec "allow lambda" do
-        authorizator.can?(:can_lambda)
+      it "allow lambda" do
+        expect(authorizator.can?(:can_lambda)).to eql(true)
       end
 
-      spec "reject lambda" do
-        ! authorizator.can?(:cant_lambda)
+      it "reject lambda" do
+        expect(authorizator.can?(:cant_lambda)).to eql(false)
       end
 
-      spec "allow proc" do
-        authorizator.can?(:can_proc)
+      it "allow proc" do
+        expect(authorizator.can?(:can_proc)).to eql(true)
       end
 
-      spec "reject proc" do
-        ! authorizator.can?(:cant_proc)
+      it "reject proc" do
+        expect(authorizator.can?(:cant_proc)).to eql(false)
       end
 
-      spec "allow action" do
-        authorizator.can?(:can_action)
+      it "allow action" do
+        expect(authorizator.can?(:can_action)).to eql(true)
       end
 
-      spec "reject action" do
-        ! authorizator.can?(:cant_action)
+      it "reject action" do
+        expect(authorizator.can?(:cant_action)).to eql(false)
       end
 
-      spec "allow true" do
-        authorizator.can?(:can_true)
+      it "allow true" do
+        expect(authorizator.can?(:can_true)).to eql(true)
       end
 
-      spec "reject false" do
-        ! authorizator.can?(:cant_false)
+      it "reject false" do
+        expect(authorizator.can?(:cant_false)).to eql(false)
       end
 
-      spec "reject false" do
-        ! authorizator.can?(:cant_false)
+      it "reject false" do
+        expect(authorizator.can?(:cant_false)).to eql(false)
       end
 
-      spec "allow true or false" do
-        authorizator.can?(:can_true_or_false)
+      it "allow true or false" do
+        expect(authorizator.can?(:can_true_or_false)).to eql(true)
       end
 
-      spec "reject true and false" do
-        ! authorizator.can?(:cant_true_and_false)
+      it "reject true and false" do
+        expect(authorizator.can?(:cant_true_and_false)).to eql(false)
       end
 
-      spec "allow array" do
-        authorizator.can?(:can_array)
+      it "allow array" do
+        expect(authorizator.can?(:can_array)).to eql(true)
       end
 
-      spec "reject array" do
-        ! authorizator.can?(:cant_array)
+      it "reject array" do
+        expect(authorizator.can?(:cant_array)).to eql(false)
       end
     end
   end
 
-  scope "arguments" do
+  describe "arguments" do
     class MyAuthorizatorWithArgs < YouShallNotPass::Authorizator
       def policies
         {
-         lambda: -> (a:, b:) { a == b },
-         proc:   proc { |a:, b:| a == b },
+          lambda: -> (a:, b:) { a == b },
+          proc:   proc { |a:, b:| a == b },
 
-         splat:  -> (**args) { args.all? { |k, v| k == v} },
+          splat:  -> (**args) { args.all? { |k, v| k == v} },
         }
       end
     end
 
     let(:authorizator) { MyAuthorizatorWithArgs.new }
 
-    spec "allow lambda" do
-      authorizator.can?(:lambda, a: 1, b: 1)
+    it "allow lambda" do
+      expect(authorizator.can?(:lambda, a: 1, b: 1)).to eql(true)
     end
 
-    spec "reject lambda" do
-      ! authorizator.can?(:lambda, a: 1, b: 2)
+    it "reject lambda" do
+      expect(authorizator.can?(:lambda, a: 1, b: 2)).to eql(false)
     end
 
-    spec "allow proc" do
-      authorizator.can?(:proc, a: 1, b: 1)
+    it "allow proc" do
+      expect(authorizator.can?(:proc, a: 1, b: 1)).to eql(true)
     end
 
-    spec "reject proc" do
-      ! authorizator.can?(:proc, a: 1, b: 2)
+    it "reject proc" do
+      expect(authorizator.can?(:proc, a: 1, b: 2)).to eql(false)
     end
 
-    spec "allow splat" do
-      authorizator.can?(:splat, a: :a , b: :b , c: :c )
+    it "allow splat" do
+      expect(authorizator.can?(:splat, a: :a , b: :b , c: :c )).to eql(true)
     end
 
-    spec "reject splat" do
-      ! authorizator.can?(:splat, a: :a, b: :b, c: :a)
+    it "reject splat" do
+      expect(authorizator.can?(:splat, a: :a, b: :b, c: :a)).to eql(false)
     end
   end
 
-  scope "performing" do
-    scope "#perform_if" do
+  describe "performing" do
+    describe "#perform_if" do
       let(:authorizator) { BasicAuthorizator.new }
 
-      spec "executes the block if it is allowed" do
+      it "executes the block if it is allowed" do
         authorizator.perform_if(:can) do
           @i_can = true
         end
 
-        !! defined? @i_can
+        expect(!! defined? @i_can).to eql(true)
       end
 
-      spec "doesn't execute the block if it isn't allowed" do
+      it "doesn't execute the block if it isn't allowed" do
         authorizator.perform_if(:cant) do
           @i_can = true
         end
 
-        ! defined? @i_can
+        expect(! defined? @i_can).to eql(true)
       end
 
-      spec "passes the arguments" do
+      it "passes the arguments" do
         authorizator.perform_if(:use_args, a: :a, b: :b) do
           @i_can = true
         end
 
-        @i_can
+        expect(@i_can).to eql(true)
       end
     end
 
-    scope "#perform_unless" do
+    describe "#perform_unless" do
       let(:authorizator) { BasicAuthorizator.new }
-      spec "executes the block if it is allowed" do
+
+      it "executes the block if it is allowed" do
         authorizator.perform_unless(:can) do
           @i_can = true
         end
 
-        ! defined? @i_can
+        expect(! defined? @i_can).to eql(true)
       end
 
-      spec "doesn't execute the block if it isn't allowed" do
+      it "doesn't execute the block if it isn't allowed" do
         authorizator.perform_unless(:cant) do
           @i_can = true
         end
 
-        !! defined? @i_can
+        expect(!! defined? @i_can).to eql(true)
       end
 
-      spec "passes the arguments" do
+      it "passes the arguments" do
         authorizator.perform_unless(:use_args, a: :a, b: :b) do
           @i_can = true
         end
 
-        ! defined? @i_can
+        expect(! defined? @i_can).to eql(true)
       end
     end
 
-    scope "perform multiple" do
+    describe "perform multiple" do
       let(:authorizator) { BasicAuthorizator.new }
 
-      spec "#perform_if_all" do
+      it "#perform_if_all" do
         authorizator.perform_if_all(:can, :can2) do
           @i_can = true
         end
 
-        !! defined? @i_can
+        expect(!! defined? @i_can).to eql(true)
       end
 
-      spec "#perform_unless_all" do
+      it "#perform_unless_all" do
         authorizator.perform_unless_all(:can, :cant) do
           @i_can = true
         end
 
-        !! defined? @i_can
+        expect(!! defined? @i_can).to eql(true)
       end
 
-      spec "not #perform_if_all" do
+      it "not #perform_if_all" do
         authorizator.perform_if_all(:can, :cant) do
           @i_can = true
         end
 
-        ! defined? @i_can
+        expect(! defined? @i_can).to eql(true)
       end
 
-      spec "not #perform_unless_all" do
+      it "not #perform_unless_all" do
         authorizator.perform_unless_all(:can, :can2) do
           @i_can = true
         end
 
-        ! defined? @i_can
+        expect(! defined? @i_can).to eql(true)
       end
 
-      spec "#perform_if_any" do
+      it "#perform_if_any" do
         authorizator.perform_if_any(:can, :can2) do
           @i_can = true
         end
 
-        !! defined? @i_can
+        expect(!! defined? @i_can).to eql(true)
       end
 
-      spec "#perform_unless_any" do
+      it "#perform_unless_any" do
         authorizator.perform_unless_any(:cant, :cant2) do
           @i_can = true
         end
 
-        !! defined? @i_can
+        expect(!! defined? @i_can).to eql(true)
       end
 
-      spec "not #perform_if_any" do
+      it "not #perform_if_any" do
         authorizator.perform_if_any(:cant, :cant2) do
           @i_can = true
         end
 
-        ! defined? @i_can
+        expect(! defined? @i_can).to eql(true)
       end
 
-      spec "not #perform_unless_any" do
+      it "not #perform_unless_any" do
         authorizator.perform_unless_any(:can, :can2) do
           @i_can = true
         end
 
-        ! defined? @i_can
+        expect(! defined? @i_can).to eql(true)
       end
 
 
     end
   end
 
-  scope "conditional policies" do
+  describe "conditional policies" do
     class NumberAuthorizator < YouShallNotPass::Authorizator
       def policies
         {
-         one:   true,
-         two:   true,
-         three: false,
-         four:  false,
+          one:   true,
+          two:   true,
+          three: false,
+          four:  false,
         }
       end
     end
 
     let(:authorizator) { NumberAuthorizator.new }
 
-    scope "regular policies vs conditional policies" do
+    describe "regular policies vs conditional policies" do
       class ConditionalAuthorizator < YouShallNotPass::Authorizator
         def policies
           {
-           one: true,
-           two: true,
-           one_and_two: false,
-           one_or_two: false
+            one: true,
+            two: true,
+            one_and_two: false,
+            one_or_two: false
           }
         end
       end
 
       let(:authorizator) { ConditionalAuthorizator.new }
 
-      spec "_and_" do
-        ! authorizator.can?(:one_and_two)
+      it "_and_" do
+        expect(authorizator.can?(:one_and_two)).to eql(false)
       end
 
-      spec "_or_" do
-        ! authorizator.can?(:one_or_two)
+      it "_or_" do
+        expect(authorizator.can?(:one_or_two)).to eql(false)
       end
     end
   end
 
-  scope "#polices" do
+  describe "#polices" do
     class MergePolicies < YouShallNotPass::Authorizator
       def action_policies
         {
-         create_user: true,
-         update_user: true,
+          create_user: true,
+          update_user: true,
         }
       end
 
       def role_policies
         {
-         admin: true,
-         editor: true,
+          admin: true,
+          editor: true,
         }
       end
 
       def feature_policies
         {
-         avatars: true,
-         random_player: true,
+          avatars: true,
+          random_player: true,
         }
       end
     end
 
-    spec do
-      YouShallNotPass::Authorizator.new.policies == {}
+    it do
+      expect(YouShallNotPass::Authorizator.new.policies).to eql({})
     end
 
     let(:authorizator) { MergePolicies.new }
 
-    spec "merges all the policies" do
+    it "merges all the policies" do
       @expected = {
-                   create_user: true,
-                   update_user: true,
-                   admin: true,
-                   editor: true,
-                   avatars: true,
-                   random_player: true,
-                  }
+        create_user: true,
+        update_user: true,
+        admin: true,
+        editor: true,
+        avatars: true,
+        random_player: true,
+      }
 
-      authorizator.policies == @expected
+      expect(authorizator.policies).to eql(@expected)
     end
   end
 
-  scope ".attribute" do
+  describe ".attribute" do
     class UserAuthorizator < YouShallNotPass::Authorizator
       attribute :user
       attribute :role
 
       def policies
         {
-         something: proc { user == "Me" && role == :admin }
+          something: proc { user == "Me" && role == :admin }
         }
       end
     end
 
-    spec "can initialize with attributes" do
+    it "can initialize with attributes" do
       authorizator = UserAuthorizator.new(user: "Me", role: :admin)
 
-      authorizator.can?(:something)
+      expect(authorizator.can?(:something)).to eql(true)
     end
 
-    spec "can initialize with attributes" do
+    it "can initialize with attributes" do
       authorizator = UserAuthorizator.new(user: "Me", role: :user)
 
-      ! authorizator.can?(:something)
+      expect(authorizator.can?(:something)).to eql(false)
     end
   end
 
-  scope "dsl" do
+  describe "dsl" do
     class DslAuthorizator < YouShallNotPass::Authorizator
       attribute :user
       attribute :pass
@@ -448,20 +445,20 @@ scope YouShallNotPass::Authorizator do
 
     let(:authorizator) { DslAuthorizator.new(user: "fede", pass: "fede") }
 
-    spec "authorizes true" do
-      authorizator.can?(:true)
+    it "authorizes true" do
+      expect(authorizator.can?(:true)).to eql(true)
     end
 
-    spec "rejects false" do
-      authorizator.can?(:false) == false
+    it "rejects false" do
+      expect(authorizator.can?(:false)).to eql(false)
+    end
+    
+    it do
+      expect(authorizator.can?(:login, user: "u", pass: "u")).to eql(true)
     end
 
-    spec do
-      authorizator.can?(:login, user: "u", pass: "u")
-    end
-
-    spec "creates with params" do
-      authorizator.can?(:use_args, a: :a, b: :b)
+    it "creates with params" do
+      expect(authorizator.can?(:use_args, a: :a, b: :b)).to eql(true)
     end
 
   end

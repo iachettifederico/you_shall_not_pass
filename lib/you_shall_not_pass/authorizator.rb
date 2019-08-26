@@ -1,11 +1,10 @@
 require "callable"
-require "fattr"
 
 module YouShallNotPass
   class Authorizator
     def initialize(**attrs)
       attrs.each do |attr, value|
-        send attr, value
+        send "#{attr}=", value
       end
     end
 
@@ -52,12 +51,13 @@ module YouShallNotPass
     end
 
     private
+
     def self.policy(name, &block)
       __dsl_policies__[name] = proc { block }
     end
 
     def self.attribute(attr)
-      fattr attr
+      attr_accessor attr
     end
     private_class_method :attribute
 

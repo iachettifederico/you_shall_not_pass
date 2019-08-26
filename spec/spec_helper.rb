@@ -1,3 +1,3 @@
-Matest.configure do |config|
-  config.use_color
+RSpec.configure do |config|
+  
 end
